@@ -4,16 +4,14 @@ import android.os.AsyncTask;
 import android.support.design.button.MaterialButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
     TextView randomNumber;
-    MaterialButton startBtn, stopBtn;
+    MaterialButton startBtn;
     MyTask myTask;
+    String start, stop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,43 +20,32 @@ public class MainActivity extends AppCompatActivity {
 
         randomNumber = findViewById(R.id.random_number);
         startBtn = findViewById(R.id.start_btn);
-        stopBtn = findViewById(R.id.stop_btn);
+
+        start = "Start";
+        stop = "Stop";
+
+        startBtn.setText(start);
 
         startBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(myTask == null){
-                    myTask = new MyTask();
-                    myTask.execute(true);
-                } else if(myTask.isCancelled()){
-                    myTask = new MyTask();
-                    myTask.execute(true);
-                }
-//                Toast.makeText(MainActivity.this, "Start", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        stopBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(myTask != null){
-//                    AnimFadeIn();
-                    myTask.cancel(false);
-//                    Toast.makeText(MainActivity.this, "Stop", Toast.LENGTH_SHORT).show();
+                if (startBtn.getText().equals("Start")) {
+                    startBtn.setText(stop);
+                    if(myTask == null || myTask.isCancelled()){
+                        myTask = new MyTask();
+                        myTask.execute(true);
+                    }
+                } else if (startBtn.getText().equals("Stop")) {
+                    startBtn.setText(start);
+                    if(myTask != null){
+                        myTask.cancel(false);
+                    }
                 }
             }
         });
-    }
-
-    private void AnimFadeIn() {
-        Animation a = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_in);
-        a.reset();
-        randomNumber.clearAnimation();
-        randomNumber.startAnimation(a);
     }
 
     private class MyTask extends AsyncTask<Boolean, String, String> {
-
         private int temp;
 
         @Override
@@ -69,10 +56,12 @@ public class MainActivity extends AppCompatActivity {
                     if(isCancelled()){
                         break;
                     }
-                    temp = (int) (Math.random() * 10);
+
+                    do {
+                        temp = (int) (Math.random() * 10);
+                    } while (randomNumber.getText().equals(String.valueOf(temp)));
+
                     publishProgress(String.valueOf(temp));
-                    Log.i("Ini", String.valueOf(temp));
-                    AnimFadeIn();
                     Thread.sleep(500);
                 }
             } catch (InterruptedException e) {
@@ -92,14 +81,6 @@ public class MainActivity extends AppCompatActivity {
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
             randomNumber.setText(values[0]);
-        }
-
-        private void AnimFadeOut()
-        {
-            Animation a = AnimationUtils.loadAnimation(MainActivity.this, R.anim.fade_out);
-            a.reset();
-            randomNumber.clearAnimation();
-            randomNumber.startAnimation(a);
         }
     }
 }
